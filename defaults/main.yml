@@ -1,2 +1,16 @@
 ---
-# defaults file for ansible-linux-security-role
+
+maldet_daemon_configuration_changes:
+  - regexp: '^.*autoupdate_signatures.*$'
+    line: 'autoupdate_signatures="0"'
+  - regexp: '^.*autoupdate_version.*$'
+    line: 'autoupdate_version="0"'
+  - regexp: '^.*quarantine_hits.*$'
+    line: 'quarantine_hits="1"'
+  - regexp: '^.*quarantine_clean.*$'
+    line: 'quarantine_clean="1"'
+  - regexp: '^.*default_monitor_mode.*$'
+    line: 'default_monitor_mode="/usr/local/maldetect/monitor_paths"'
+
+maldet_daemon_state: started
+maldet_daemon_enabled: true

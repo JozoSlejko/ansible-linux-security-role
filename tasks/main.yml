@@ -1,12 +1,57 @@
 ---
-# tasks file for ansible-linux-security-role
 
-  - name: make sure the time is correct
-    shell: "ntpdate -u pool.ntp.org"
+  - name: Ensure inotify-tools package is installed.
+    package: 
+      name: "{{ inotify_tools_package }}"
+      state: present
 
-  - name: Update APT package cache
-    action: apt update_cache=yes
-    changed_when: False
+  - name: Create LMD's download dir
+    file: 
+      path: /root/downloads/maldet
+      state: directory
+      recurse: yes
+ 
+  - name: Maldet | download the Linux Malware Detect tar.gz file from rfxn.com
+    get_url:
+      url: http://www.rfxn.com/downloads/maldetect-current.tar.gz
+      dest: "/root/downloads/maldetect-current.tar.gz"
 
-  - include: install.yml
+  - name: Maldet | Unarchive copied package
+    unarchive: 
+      src: /root/downloads/maldetect-current.tar.gz 
+      dest: /root/downloads/maldet 
+      extra_opts: [--strip-components=1]
+      copy: no
 
+  - name: Maldet | Install Linux Malware Detect
+    shell: /root/downloads/maldet/install.sh chdir=/root/downloads/maldet/
+
+  - name: Change configuration for the maldet daemon.
+    lineinfile:
+      path: "{{ maldet_daemon_config_path }}"
+      regexp: '{{ item.regexp }}'
+      line: "{{ item.line | default('') }}"
+      state: "{{ item.state | default('present') }}"
+    with_items: "{{ maldet_daemon_configuration_changes }}"
+
+  - name: Create maldet monitor_paths file.
+    template:
+      src: usr/local/maldetect/monitor_paths.j2
+      dest: /usr/local/maldetect/monitor_paths
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Create logrotate clamav file.
+    template:
+      src: etc/logrotate/maldet.j2
+      dest: /etc/logrotate.d/maldet
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Ensure Maldet daemon is running.
+    service:
+      name: "{{ maldet_daemon }}"
+      state: "{{ maldet_daemon_state }}"
+      enabled: "{{ maldet_daemon_enabled }}"

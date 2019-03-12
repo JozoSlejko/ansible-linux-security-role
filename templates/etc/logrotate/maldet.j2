@@ -1,0 +1,25 @@
+# {{ ansible_managed }}
+#
+
+/usr/local/maldetect/logs/event_log
+/usr/local/maldetect/logs/clamscan_log {
+    missingok
+    weekly
+    compress
+    notifempty
+    size 1M
+    rotate 4
+    create 0644 root root
+}
+/usr/local/maldetect/logs/inotify_log {
+    missingok
+    weekly
+    compress
+    create 0644 root root
+    notifempty
+    size 1M
+    rotate 4
+    postrotate
+        /bin/systemctl condrestart maldet.service > /dev/null 2>/dev/null || true
+    endscript
+}

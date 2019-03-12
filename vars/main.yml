@@ -1,2 +1,7 @@
 ---
-# vars file for ansible-linux-security-role
+
+maldet_cron: /usr/local/maldetect/maldet -b -r /opt 1 >> /dev/null 2>&1
+inotify_tools_package: inotify-tools
+
+maldet_daemon_config_path: /usr/local/maldetect/conf.maldet
+maldet_daemon: 'maldet'
